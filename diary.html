@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Менің жазбаларым — Менің Күнделігім</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="container nav-container">
+            <a href="index.html" class="logo">📖 Менің Күнделігім</a>
+            <button class="menu-toggle" id="menuToggle">☰</button>
+            <nav class="nav-links" id="navLinks">
+                <a href="index.html">Басты бет</a>
+                <a href="diary.html" class="active">Күнделік</a>
+                <a href="auth.html" class="btn-nav">Шығу</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container diary-container">
+        <div class="diary-header">
+            <div>
+                <h1>Менің күнделік жазбаларым</h1>
+                <p class="subtitle">Бүгін ойыңызда не бар?</p>
+            </div>
+            <button class="btn btn-primary" id="openModalBtn">+ Жаңа жазба</button>
+        </div>
+
+        <!-- ІЗДЕУ ЖӘНЕ СҮЗУ ПАНЕЛІ -->
+        <div class="filter-bar">
+            <input type="text" id="searchInput" placeholder="Тақырып немесе мәтін бойынша іздеу...">
+            <select id="moodFilter">
+                <option value="all">Барлық көңіл-күй</option>
+                <option value="Қуанышты">😊 Қуанышты</option>
+                <option value="Ойлы">🤔 Ойлы</option>
+                <option value="Тыныш">😌 Тыныш</option>
+                <option value="Шабытты">✨ Шабытты</option>
+            </select>
+        </div>
+
+        <!-- ЖАЗБАЛАР ТІЗІМІ (Статикалық мысалдар) -->
+        <div class="entries-grid" id="entriesGrid">
+            <article class="entry-card" data-mood="Шабытты">
+                <div class="entry-meta">
+                    <span class="entry-date">18.11.2026</span>
+                    <span class="mood-badge">✨ Шабытты</span>
+                </div>
+                <h3>PHP жобасын бастау</h3>
+                <p>Бүгін жеке күнделік веб-қосымшасының интерфейсін жасап шықтым. Адаптивті дизайн өте жинақы көрінеді.</p>
+                <div class="entry-actions">
+                    <button class="btn-small btn-edit">Өңдеу</button>
+                    <button class="btn-small btn-delete">Жою</button>
+                </div>
+            </article>
+
+            <article class="entry-card" data-mood="Қуанышты">
+                <div class="entry-meta">
+                    <span class="entry-date">16.11.2026</span>
+                    <span class="mood-badge">😊 Қуанышты</span>
+                </div>
+                <h3>Демалыс күнгі серуен</h3>
+                <p>Тау бөктерінде таза ауада серуендеп, жаңа аптаға күш жинап қайттым. Күзгі табиғат ерекше әдемі.</p>
+                <div class="entry-actions">
+                    <button class="btn-small btn-edit">Өңдеу</button>
+                    <button class="btn-small btn-delete">Жою</button>
+                </div>
+            </article>
+
+            <article class="entry-card" data-mood="Ойлы">
+                <div class="entry-meta">
+                    <span class="entry-date">14.11.2026</span>
+                    <span class="mood-badge">🤔 Ойлы</span>
+                </div>
+                <h3>Оқыған кітаптан түйген ойлар</h3>
+                <p>Уақытты тиімді басқару және күнделікті шағын әдеттердің үлкен нәтижеге жеткізетіні туралы жазып алдым.</p>
+                <div class="entry-actions">
+                    <button class="btn-small btn-edit">Өңдеу</button>
+                    <button class="btn-small btn-delete">Жою</button>
+                </div>
+            </article>
+        </div>
+    </main>
+
+    <!-- ЖАҢА ЖАЗБА ҚОСУ МОДАЛЬДЫ ТЕРЕЗЕСІ -->
+    <div class="modal hidden" id="entryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Жаңа жазба қосу</h2>
+                <button class="close-btn" id="closeModalBtn">&times;</button>
+            </div>
+            <form id="newEntryForm">
+                <div class="form-group">
+                    <label for="entryTitle">Тақырыбы</label>
+                    <input type="text" id="entryTitle" placeholder="Бүгінгі күннің атауы..." required>
+                </div>
+                <div class="form-group">
+                    <label for="entryMood">Көңіл-күй</label>
+                    <select id="entryMood" required>
+                        <option value="Қуанышты">😊 Қуанышты</option>
+                        <option value="Ойлы">🤔 Ойлы</option>
+                        <option value="Тыныш">😌 Тыныш</option>
+                        <option value="Шабытты">✨ Шабытты</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="entryContent">Жазба мәтіні</label>
+                    <textarea id="entryContent" rows="5" placeholder="Ойларыңызды осында жазыңыз..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Сақтау</button>
+            </form>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Жеке Күнделік веб-қосымшасы.</p>
+        </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
