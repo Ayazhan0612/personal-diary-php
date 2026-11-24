@@ -24,6 +24,8 @@ $formSuccess = '';
 
 if (isset($_GET['added'])) {
     $formSuccess = 'Жаңа жазба дерекқорға сәтті сақталды!';
+} elseif (isset($_GET['updated'])) {
+    $formSuccess = 'Жазба сәтті жаңартылды!';
 } elseif (isset($_GET['deleted'])) {
     $formSuccess = 'Жазба сәтті жойылды.';
 }
@@ -45,7 +47,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_entry'])) {
     }
 
     if (empty($formErrors)) {
-        // Санат ID-ін алу (егер categories кестесінде болса)
         $catStmt = $pdo->prepare('SELECT id FROM categories WHERE name = ? LIMIT 1');
         $catStmt->execute([$mood]);
         $catRow = $catStmt->fetch();
@@ -72,25 +73,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_entry'])) {
     exit;
 }
 
-// 3. Пайдаланушының жазбаларын оқу және іздеу/сүзу (READ)
+// 3. Пайдаланушы статистикасын есептеу
+$statsStmt = $pdo->prepare('SELECT COUNT(*) AS total FROM entries WHERE user_id = ?');
+$statsStmt->execute([$userId]);
+$totalEntries = (int)$statsStmt->fetchColumn();
+
+$topMoodStmt = $pdo->prepare(
+    'SELECT mood, COUNT(*) AS cnt FROM entries WHERE user_id = ? GROUP BY mood ORDER BY cnt DESC LIMIT 1'
+);
+$topMoodStmt->execute([$userId]);
+$topMoodRow = $topMoodStmt->fetch();
+$topMoodLabel = $topMoodRow ? ($allowedMoods[$topMoodRow['mood']] ?? $topMoodRow['mood']) : 'Әзірге жоқ';
+
+// 4. Пайдаланушының жазбаларын categories кестесімен біріктіріп оқу (READ + JOIN)
 $searchQuery = trim($_GET['search'] ?? '');
 $selectedMood = $_GET['mood'] ?? 'all';
 
-$sql = 'SELECT id, mood, title, content, created_at FROM entries WHERE user_id = :user_id';
+$sql = 'SELECT e.id, e.mood, e.title, e.content, e.created_at, c.name AS category_name
+        FROM entries e
+        LEFT JOIN categories c ON e.category_id = c.id
+        WHERE e.user_id = :user_id';
 $params = ['user_id' => $userId];
 
 if ($selectedMood !== 'all' && array_key_exists($selectedMood, $allowedMoods)) {
-    $sql .= ' AND mood = :mood';
+    $sql .= ' AND e.mood = :mood';
     $params['mood'] = $selectedMood;
 }
 
 if ($searchQuery !== '') {
-    $sql .= ' AND (title LIKE :search_title OR content LIKE :search_content)';
+    $sql .= ' AND (e.title LIKE :search_title OR e.content LIKE :search_content)';
     $params['search_title'] = '%' . $searchQuery . '%';
     $params['search_content'] = '%' . $searchQuery . '%';
 }
 
-$sql .= ' ORDER BY created_at DESC';
+$sql .= ' ORDER BY e.created_at DESC';
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
@@ -106,6 +122,18 @@ include 'includes/header.php';
             <p class="subtitle">Сәлем, <?= htmlspecialchars($_SESSION['username'] ?? 'Пайдаланушы') ?>! Бүгін ойыңызда не бар?</p>
         </div>
         <button type="button" class="btn btn-primary" id="openModalBtn">+ Жаңа жазба</button>
+    </div>
+
+    <!-- СТАТИСТИКА БЛОГЫ -->
+    <div class="stats-bar">
+        <div class="stat-card">
+            <span class="stat-label">Барлық жазбалар саны</span>
+            <strong class="stat-value"><?= $totalEntries ?></strong>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Жиі кездесетін көңіл-күй</span>
+            <strong class="stat-value"><?= htmlspecialchars($topMoodLabel) ?></strong>
+        </div>
     </div>
 
     <?php if (!empty($formErrors)): ?>
@@ -147,9 +175,10 @@ include 'includes/header.php';
             <?php foreach ($filteredEntries as $item): ?>
                 <?php
                     $formattedDate = date('d.m.Y H:i', strtotime($item['created_at']));
-                    $badgeText = $allowedMoods[$item['mood']] ?? htmlspecialchars($item['mood']);
+                    $moodKey = $item['category_name'] ?? $item['mood'];
+                    $badgeText = $allowedMoods[$moodKey] ?? htmlspecialchars($moodKey);
                 ?>
-                <article class="entry-card" data-mood="<?= htmlspecialchars($item['mood']) ?>">
+                <article class="entry-card" data-mood="<?= htmlspecialchars($moodKey) ?>">
                     <div>
                         <div class="entry-meta">
                             <span class="entry-date"><?= htmlspecialchars($formattedDate) ?></span>
@@ -159,6 +188,7 @@ include 'includes/header.php';
                         <p><?= nl2br(htmlspecialchars($item['content'])) ?></p>
                     </div>
                     <div class="entry-actions">
+                        <a href="edit.php?id=<?= (int)$item['id'] ?>" class="btn-small btn-edit">Өңдеу</a>
                         <form action="diary.php" method="POST" onsubmit="return confirm('Бұл жазбаны өшіруге сенімдісіз бе?');">
                             <input type="hidden" name="delete_entry" value="1">
                             <input type="hidden" name="entry_id" value="<?= (int)$item['id'] ?>">
