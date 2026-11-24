@@ -121,9 +121,12 @@ include 'includes/header.php';
             <h1>Менің күнделік жазбаларым</h1>
             <p class="subtitle">Сәлем, <?= htmlspecialchars($_SESSION['username'] ?? 'Пайдаланушы') ?>! Бүгін ойыңызда не бар?</p>
         </div>
-        <button type="button" class="btn btn-primary" id="openModalBtn">+ Жаңа жазба</button>
+       <div class="hero-buttons">
+            <a href="export.php" class="btn btn-outline">⬇ Экспорт (.txt)</a>
+            <button type="button" class="btn btn-primary" id="openModalBtn">+ Жаңа жазба</button>
     </div>
 
+        
     <!-- СТАТИСТИКА БЛОГЫ -->
     <div class="stats-bar">
         <div class="stat-card">
