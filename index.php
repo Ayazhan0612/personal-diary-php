@@ -1,4 +1,5 @@
 <?php
+session_start();
 $pageTitle = 'Менің Күнделігім — Жеке ойлар кеңістігі';
 $activePage = 'index';
 include 'includes/header.php';
@@ -10,8 +11,12 @@ include 'includes/header.php';
             <h1>Күнделікті ойларыңыз бен маңызды сәттеріңізді сақтаңыз</h1>
             <p>Қауіпсіз, ыңғайлы және тек өзіңізге ғана қолжетімді онлайн жеке күнделік платформасы.</p>
             <div class="hero-buttons">
-                <a href="auth.php?tab=register" class="btn btn-primary">Күнделік бастау</a>
-                <a href="diary.php" class="btn btn-outline">Демо нұсқаны көру</a>
+                <?php if (isset($_SESSION['user_id'])): ?>
+                    <a href="diary.php" class="btn btn-primary">Күнделікке өту</a>
+                <?php else: ?>
+                    <a href="auth.php?tab=register" class="btn btn-primary">Күнделік бастау</a>
+                    <a href="auth.php" class="btn btn-outline">Жүйеге кіру</a>
+                <?php endif; ?>
             </div>
         </div>
     </section>
@@ -20,7 +25,7 @@ include 'includes/header.php';
         <div class="feature-card">
             <span class="feature-icon">🔒</span>
             <h3>Толық құпиялылық</h3>
-            <p>Әр пайдаланушының жазбалары жеке аккаунтпен және құпиясөзбен қорғалады.</p>
+            <p>Әр пайдаланушының жазбалары жеке аккаунтпен және хэштелген құпиясөзбен қорғалады.</p>
         </div>
         <div class="feature-card">
             <span class="feature-icon">😊</span>
@@ -30,7 +35,7 @@ include 'includes/header.php';
         <div class="feature-card">
             <span class="feature-icon">🔍</span>
             <h3>Жылдам іздеу және сүзу</h3>
-            <p>Кез келген естелікті күні, санаты немесе кілт сөздер арқылы оңай табыңыз.</p>
+            <p>Кез келген естелікті көңіл-күйі немесе кілт сөздер арқылы оңай табыңыз.</p>
         </div>
     </section>
 </main>

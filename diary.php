@@ -1,47 +1,38 @@
 <?php
+session_start();
+require_once 'config/db.php';
+
+// Тек жүйеге кірген пайдаланушыларға ғана рұқсат беру
+if (!isset($_SESSION['user_id'])) {
+    header('Location: auth.php');
+    exit;
+}
+
+$userId = (int)$_SESSION['user_id'];
 $pageTitle = 'Менің жазбаларым — Менің Күнделігім';
 $activePage = 'diary';
 
-// Бастапқы сынақ деректері (11-аптада MySQL кестесінен алынады)
-$entries = [
-    [
-        'date' => '18.11.2026',
-        'mood' => 'Шабытты',
-        'badge' => '✨ Шабытты',
-        'title' => 'PHP жобасын бастау',
-        'content' => 'Бүгін жеке күнделік веб-қосымшасының интерфейсін жасап шықтым. Адаптивті дизайн өте жинақы көрінеді.'
-    ],
-    [
-        'date' => '16.11.2026',
-        'mood' => 'Қуанышты',
-        'badge' => '😊 Қуанышты',
-        'title' => 'Демалыс күнгі серуен',
-        'content' => 'Тау бөктерінде таза ауада серуендеп, жаңа аптаға күш жинап қайттым. Күзгі табиғат ерекше әдемі.'
-    ],
-    [
-        'date' => '14.11.2026',
-        'mood' => 'Ойлы',
-        'badge' => '🤔 Ойлы',
-        'title' => 'Оқыған кітаптан түйген ойлар',
-        'content' => 'Уақытты тиімді басқару және күнделікті шағын әдеттердің үлкен нәтижеге жеткізетіні туралы жазып алдым.'
-    ]
+$allowedMoods = [
+    'Қуанышты' => '😊 Қуанышты',
+    'Ойлы'     => '🤔 Ойлы',
+    'Тыныш'    => '😌 Тыныш',
+    'Шабытты'  => '✨ Шабытты'
 ];
 
 $formErrors = [];
 $formSuccess = '';
 
-// $_POST арқылы жаңа жазба формасын өңдеу және тексеру
+if (isset($_GET['added'])) {
+    $formSuccess = 'Жаңа жазба дерекқорға сәтті сақталды!';
+} elseif (isset($_GET['deleted'])) {
+    $formSuccess = 'Жазба сәтті жойылды.';
+}
+
+// 1. Жаңа жазбаны MySQL-ге қосу (CREATE)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_entry'])) {
     $title = trim($_POST['title'] ?? '');
     $mood = trim($_POST['mood'] ?? '');
     $content = trim($_POST['content'] ?? '');
-
-    $allowedMoods = [
-        'Қуанышты' => '😊 Қуанышты',
-        'Ойлы' => '🤔 Ойлы',
-        'Тыныш' => '😌 Тыныш',
-        'Шабытты' => '✨ Шабытты'
-    ];
 
     if (mb_strlen($title) < 3) {
         $formErrors[] = 'Тақырып кемінде 3 таңбадан тұруы қажет.';
@@ -54,28 +45,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_entry'])) {
     }
 
     if (empty($formErrors)) {
-        array_unshift($entries, [
-            'date' => date('d.m.Y'),
-            'mood' => $mood,
-            'badge' => $allowedMoods[$mood],
-            'title' => $title,
-            'content' => $content
-        ]);
-        $formSuccess = 'Жаңа жазба сәтті тексерілді және қосылды!';
+        // Санат ID-ін алу (егер categories кестесінде болса)
+        $catStmt = $pdo->prepare('SELECT id FROM categories WHERE name = ? LIMIT 1');
+        $catStmt->execute([$mood]);
+        $catRow = $catStmt->fetch();
+        $categoryId = $catRow ? $catRow['id'] : null;
+
+        $insertStmt = $pdo->prepare(
+            'INSERT INTO entries (user_id, category_id, mood, title, content) VALUES (?, ?, ?, ?, ?)'
+        );
+        $insertStmt->execute([$userId, $categoryId, $mood, $title, $content]);
+
+        header('Location: diary.php?added=1');
+        exit;
     }
 }
 
-// $_GET арқылы серверлік іздеу және сүзу
+// 2. Жазбаны өшіру (DELETE)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_entry'])) {
+    $entryId = (int)($_POST['entry_id'] ?? 0);
+    if ($entryId > 0) {
+        $delStmt = $pdo->prepare('DELETE FROM entries WHERE id = ? AND user_id = ?');
+        $delStmt->execute([$entryId, $userId]);
+    }
+    header('Location: diary.php?deleted=1');
+    exit;
+}
+
+// 3. Пайдаланушының жазбаларын оқу және іздеу/сүзу (READ)
 $searchQuery = trim($_GET['search'] ?? '');
 $selectedMood = $_GET['mood'] ?? 'all';
 
-$filteredEntries = array_filter($entries, function ($entry) use ($searchQuery, $selectedMood) {
-    $matchesMood = ($selectedMood === 'all' || $entry['mood'] === $selectedMood);
-    $matchesSearch = ($searchQuery === '' ||
-        mb_stripos($entry['title'], $searchQuery) !== false ||
-        mb_stripos($entry['content'], $searchQuery) !== false);
-    return $matchesMood && $matchesSearch;
-});
+$sql = 'SELECT id, mood, title, content, created_at FROM entries WHERE user_id = :user_id';
+$params = ['user_id' => $userId];
+
+if ($selectedMood !== 'all' && array_key_exists($selectedMood, $allowedMoods)) {
+    $sql .= ' AND mood = :mood';
+    $params['mood'] = $selectedMood;
+}
+
+if ($searchQuery !== '') {
+    $sql .= ' AND (title LIKE :search_title OR content LIKE :search_content)';
+    $params['search_title'] = '%' . $searchQuery . '%';
+    $params['search_content'] = '%' . $searchQuery . '%';
+}
+
+$sql .= ' ORDER BY created_at DESC';
+
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
+$filteredEntries = $stmt->fetchAll();
 
 include 'includes/header.php';
 ?>
@@ -84,7 +103,7 @@ include 'includes/header.php';
     <div class="diary-header">
         <div>
             <h1>Менің күнделік жазбаларым</h1>
-            <p class="subtitle">Бүгін ойыңызда не бар?</p>
+            <p class="subtitle">Сәлем, <?= htmlspecialchars($_SESSION['username'] ?? 'Пайдаланушы') ?>! Бүгін ойыңызда не бар?</p>
         </div>
         <button type="button" class="btn btn-primary" id="openModalBtn">+ Жаңа жазба</button>
     </div>
@@ -103,15 +122,16 @@ include 'includes/header.php';
         </div>
     <?php endif; ?>
 
-    <!-- $_GET АРҚЫЛЫ ІЗДЕУ ЖӘНЕ СҮЗУ ФОРМАСЫ -->
+    <!-- ІЗДЕУ ЖӘНЕ СҮЗУ ФОРМАСЫ -->
     <form class="filter-bar" action="diary.php" method="GET">
         <input type="text" name="search" id="searchInput" value="<?= htmlspecialchars($searchQuery) ?>" placeholder="Тақырып немесе мәтін бойынша іздеу...">
         <select name="mood" id="moodFilter">
             <option value="all" <?= $selectedMood === 'all' ? 'selected' : '' ?>>Барлық көңіл-күй</option>
-            <option value="Қуанышты" <?= $selectedMood === 'Қуанышты' ? 'selected' : '' ?>>😊 Қуанышты</option>
-            <option value="Ойлы" <?= $selectedMood === 'Ойлы' ? 'selected' : '' ?>>🤔 Ойлы</option>
-            <option value="Тыныш" <?= $selectedMood === 'Тыныш' ? 'selected' : '' ?>>😌 Тыныш</option>
-            <option value="Шабытты" <?= $selectedMood === 'Шабытты' ? 'selected' : '' ?>>✨ Шабытты</option>
+            <?php foreach ($allowedMoods as $moodKey => $moodLabel): ?>
+                <option value="<?= htmlspecialchars($moodKey) ?>" <?= $selectedMood === $moodKey ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($moodLabel) ?>
+                </option>
+            <?php endforeach; ?>
         </select>
         <button type="submit" class="btn btn-primary">Іздеу</button>
         <?php if ($searchQuery !== '' || $selectedMood !== 'all'): ?>
@@ -122,19 +142,28 @@ include 'includes/header.php';
     <!-- ЖАЗБАЛАР ТІЗІМІ -->
     <div class="entries-grid" id="entriesGrid">
         <?php if (empty($filteredEntries)): ?>
-            <p class="subtitle">Сұраныс бойынша жазбалар табылмады.</p>
+            <p class="subtitle">Әзірге жазбалар табылмады. Алғашқы естелігіңізді қосыңыз!</p>
         <?php else: ?>
             <?php foreach ($filteredEntries as $item): ?>
+                <?php
+                    $formattedDate = date('d.m.Y H:i', strtotime($item['created_at']));
+                    $badgeText = $allowedMoods[$item['mood']] ?? htmlspecialchars($item['mood']);
+                ?>
                 <article class="entry-card" data-mood="<?= htmlspecialchars($item['mood']) ?>">
-                    <div class="entry-meta">
-                        <span class="entry-date"><?= htmlspecialchars($item['date']) ?></span>
-                        <span class="mood-badge"><?= htmlspecialchars($item['badge']) ?></span>
+                    <div>
+                        <div class="entry-meta">
+                            <span class="entry-date"><?= htmlspecialchars($formattedDate) ?></span>
+                            <span class="mood-badge"><?= htmlspecialchars($badgeText) ?></span>
+                        </div>
+                        <h3><?= htmlspecialchars($item['title']) ?></h3>
+                        <p><?= nl2br(htmlspecialchars($item['content'])) ?></p>
                     </div>
-                    <h3><?= htmlspecialchars($item['title']) ?></h3>
-                    <p><?= htmlspecialchars($item['content']) ?></p>
                     <div class="entry-actions">
-                        <button type="button" class="btn-small btn-edit">Өңдеу</button>
-                        <button type="button" class="btn-small btn-delete">Жою</button>
+                        <form action="diary.php" method="POST" onsubmit="return confirm('Бұл жазбаны өшіруге сенімдісіз бе?');">
+                            <input type="hidden" name="delete_entry" value="1">
+                            <input type="hidden" name="entry_id" value="<?= (int)$item['id'] ?>">
+                            <button type="submit" class="btn-small btn-delete">Жою</button>
+                        </form>
                     </div>
                 </article>
             <?php endforeach; ?>
@@ -142,7 +171,7 @@ include 'includes/header.php';
     </div>
 </main>
 
-<!-- ЖАҢА ЖАЗБА ҚОСУ МОДАЛЬДЫ ТЕРЕЗЕСІ ($_POST) -->
+<!-- ЖАҢА ЖАЗБА ҚОСУ МОДАЛЬДЫ ТЕРЕЗЕСІ -->
 <div class="modal <?= !empty($formErrors) ? '' : 'hidden' ?>" id="entryModal">
     <div class="modal-content">
         <div class="modal-header">
@@ -158,10 +187,9 @@ include 'includes/header.php';
             <div class="form-group">
                 <label for="entryMood">Көңіл-күй</label>
                 <select id="entryMood" name="mood" required>
-                    <option value="Қуанышты">😊 Қуанышты</option>
-                    <option value="Ойлы">🤔 Ойлы</option>
-                    <option value="Тыныш">😌 Тыныш</option>
-                    <option value="Шабытты">✨ Шабытты</option>
+                    <?php foreach ($allowedMoods as $moodKey => $moodLabel): ?>
+                        <option value="<?= htmlspecialchars($moodKey) ?>"><?= htmlspecialchars($moodLabel) ?></option>
+                    <?php endforeach; ?>
                 </select>
             </div>
             <div class="form-group">

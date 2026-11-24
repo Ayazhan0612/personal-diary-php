@@ -1,13 +1,20 @@
 <?php
+session_start();
+require_once 'config/db.php';
+
+// Егер пайдаланушы жүйеге кіріп қойған болса, күнделікке бағыттау
+if (isset($_SESSION['user_id'])) {
+    header('Location: diary.php');
+    exit;
+}
+
 $pageTitle = 'Кіру және Тіркелу — Менің Күнделігім';
 $activePage = 'auth';
 
 $errors = [];
 $successMsg = '';
-// $_GET арқылы қай қойынды (Кіру немесе Тіркелу) ашық тұратынын анықтау
 $activeTab = (isset($_GET['tab']) && $_GET['tab'] === 'register') ? 'register' : 'login';
 
-// $_POST сұранысын өңдеу және серверлік валидация
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
@@ -24,7 +31,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (empty($errors)) {
-            $successMsg = 'Деректер серверде сәтті тексерілді! (11-аптада MySQL арқылы кіру қосылады).';
+            $stmt = $pdo->prepare('SELECT id, username, password FROM users WHERE email = ? LIMIT 1');
+            $stmt->execute([$email]);
+            $user = $stmt->fetch();
+
+            if ($user && password_verify($password, $user['password'])) {
+                session_regenerate_id(true);
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['username'] = $user['username'];
+                header('Location: diary.php');
+                exit;
+            } else {
+                $errors[] = 'Электрондық пошта немесе құпиясөз қате.';
+            }
         }
     } elseif ($action === 'register') {
         $activeTab = 'register';
@@ -43,12 +62,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = 'Құпиясөз кемінде 6 таңба болуы тиіс.';
         }
         if ($password !== $confirm) {
-            $errors[] = 'Енгізізілген құпиясөздер сәйкес келмейді.';
+            $errors[] = 'Енгізілген құпиясөздер сәйкес келмейді.';
         }
 
         if (empty($errors)) {
-            $successMsg = 'Сәтті тіркелдіңіз, ' . htmlspecialchars($username) . '! Енді жүйеге кіре аласыз.';
-            $activeTab = 'login';
+            // Email бұрын тіркелген-тіркелмегенін тексеру
+            $checkStmt = $pdo->prepare('SELECT id FROM users WHERE email = ? LIMIT 1');
+            $checkStmt->execute([$email]);
+
+            if ($checkStmt->fetch()) {
+                $errors[] = 'Бұл электрондық пошта жүйеде бұрыннан тіркелген.';
+            } else {
+                $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+                $insertStmt = $pdo->prepare('INSERT INTO users (username, email, password) VALUES (?, ?, ?)');
+                $insertStmt->execute([$username, $email, $hashedPassword]);
+
+                $successMsg = 'Сәтті тіркелдіңіз, ' . htmlspecialchars($username) . '! Енді аккаунтыңызға кіре аласыз.';
+                $activeTab = 'login';
+            }
         }
     }
 }
@@ -63,7 +94,6 @@ include 'includes/header.php';
             <button type="button" class="tab-btn <?= $activeTab === 'register' ? 'active' : '' ?>" id="registerTab">Тіркелу</button>
         </div>
 
-        <!-- СЕРВЕРЛІК ТЕКСЕРУ ХАБАРЛАМАЛАРЫ -->
         <?php if (!empty($errors)): ?>
             <div class="alert alert-error">
                 <?php foreach ($errors as $error): ?>
