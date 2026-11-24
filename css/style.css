@@ -407,6 +407,7 @@ main {
     }
 }
 
+
 /* PHP хабарлама блоктары */
 .alert {
     padding: 0.9rem 1.1rem;
@@ -426,7 +427,3 @@ main {
     border: 1px solid #a7f3d0;
     color: #047857;
 }
-
-
-
-
