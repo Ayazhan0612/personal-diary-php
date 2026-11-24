@@ -1,13 +1,8 @@
 <?php
-session_start();
+require_once 'includes/helpers.php';
 require_once 'config/db.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header('Location: auth.php');
-    exit;
-}
-
-$userId = (int)$_SESSION['user_id'];
+$userId = requireAuth();
 $username = $_SESSION['username'] ?? 'Пайдаланушы';
 
 $stmt = $pdo->prepare('SELECT title, mood, content, created_at FROM entries WHERE user_id = ? ORDER BY created_at DESC');
