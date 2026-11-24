@@ -27,7 +27,7 @@ $isLoggedIn = isset($_SESSION['user_id']);
                 <a href="index.php" class="<?= $activePage === 'index' ? 'active' : '' ?>">Басты бет</a>
                 <?php if ($isLoggedIn): ?>
                     <a href="diary.php" class="<?= $activePage === 'diary' ? 'active' : '' ?>">Күнделік</a>
-                    <span class="user-greeting">👤 <?= htmlspecialchars($_SESSION['username'] ?? '') ?></span>
+                    <a href="profile.php" class="<?= $activePage === 'profile' ? 'active' : '' ?>">👤 <?= htmlspecialchars($_SESSION['username'] ?? '') ?></a>
                     <a href="logout.php" class="btn-nav btn-logout">Шығу</a>
                 <?php else: ?>
                     <a href="diary.php" class="<?= $activePage === 'diary' ? 'active' : '' ?>">Күнделік</a>
