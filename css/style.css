@@ -436,3 +436,50 @@ main {
     border: 1px solid #a7f3d0;
     color: #047857;
 }
+
+
+
+
+/* 12-апта: Статистика және Өңдеу беті */
+.stats-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 1rem 1.3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.stat-value {
+    font-size: 1.35rem;
+    color: var(--primary);
+}
+
+.btn-edit {
+    color: var(--primary);
+    border-color: #c7d2fe;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.edit-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 2rem;
+    max-width: 700px;
+    margin: 0 auto;
+}
