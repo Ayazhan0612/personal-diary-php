@@ -588,3 +588,59 @@ main {
         font-size: 1.9rem;
     }
 }
+
+
+/* Суретті басқанда үлкейту (Lightbox) */
+.entry-image {
+    cursor: zoom-in;
+    transition: transform 0.25s ease, opacity 0.2s ease;
+}
+
+.entry-image:hover {
+    opacity: 0.92;
+    transform: scale(1.01);
+}
+
+.lightbox-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1.5rem;
+    z-index: 999;
+    cursor: zoom-out;
+}
+
+.lightbox-modal img {
+    max-width: 92vw;
+    max-height: 88vh;
+    border-radius: 16px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+    object-fit: contain;
+    cursor: default;
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 28px;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 1.8rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.lightbox-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
