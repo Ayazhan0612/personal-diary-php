@@ -2,13 +2,8 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-if (!isset($pageTitle)) {
-    $pageTitle = 'Менің Күнделігім';
-}
-if (!isset($activePage)) {
-    $activePage = '';
-}
-$isLoggedIn = isset($_SESSION['user_id']);
+$pageTitle = $pageTitle ?? 'Менің Күнделігім';
+$activePage = $activePage ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="kk">
@@ -26,31 +21,18 @@ $isLoggedIn = isset($_SESSION['user_id']);
     <header class="navbar">
         <div class="container nav-container">
             <a href="index.php" class="logo">📖 Менің Күнделігім</a>
-            <button class="menu-toggle" id="menuToggle">☰</button>
+            <button type="button" class="menu-toggle" id="menuToggle" aria-label="Мәзірді ашу">☰</button>
             <nav class="nav-links" id="navLinks">
-                <a href="index.php" class="<?= $activePage === 'index' ? 'active' : '' ?>">Басты бет</a>
-                <?php if ($isLoggedIn): ?>
+                <a href="index.php" class="<?= $activePage === 'home' ? 'active' : '' ?>">Басты бет</a>
+                <?php if (isset($_SESSION['user_id'])): ?>
                     <a href="diary.php" class="<?= $activePage === 'diary' ? 'active' : '' ?>">Күнделік</a>
-                    <a href="profile.php" class="<?= $activePage === 'profile' ? 'active' : '' ?>">👤 <?= htmlspecialchars($_SESSION['username'] ?? '') ?></a>
+                    <a href="profile.php" class="user-greeting <?= $activePage === 'profile' ? 'active' : '' ?>">
+                        👤 <?= htmlspecialchars($_SESSION['username'] ?? 'Профиль') ?>
+                    </a>
                     <a href="logout.php" class="btn-nav btn-logout">Шығу</a>
                 <?php else: ?>
-                    <a href="diary.php" class="<?= $activePage === 'diary' ? 'active' : '' ?>">Күнделік</a>
                     <a href="auth.php" class="btn-nav <?= $activePage === 'auth' ? 'active' : '' ?>">Кіру / Тіркелу</a>
                 <?php endif; ?>
             </nav>
-          </nav>
-            <div class="font-switcher">
-    <select id="fontSelector" aria-label="Шрифт таңдау" title="Шрифтті өзгерту">
-        <option value="'Inter', sans-serif">Inter (Заманауи)</option>
-        <option value="'Montserrat', sans-serif">Montserrat (Геометриялық)</option>
-        <option value="'Nunito', sans-serif">Nunito (Жұмсақ)</option>
-        <option value="'Rubik', sans-serif">Rubik (Дөңгелек)</option>
-        <option value="'Comfortaa', cursive">Comfortaa (Ерекше)</option>
-        <option value="'Lora', serif">Lora (Классикалық)</option>
-        <option value="'Playfair Display', serif">Playfair Display (Эстетикалық)</option>
-        <option value="'Merriweather', serif">Merriweather (Кітаби)</option>
-        <option value="'JetBrains Mono', monospace">JetBrains Mono (Код стилі)</option>
-        <option value="'Caveat', cursive">Caveat (Қолжазба)</option>
-    </select>
-</div>     
+        </div>
     </header>
