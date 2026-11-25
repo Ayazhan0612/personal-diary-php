@@ -2,7 +2,6 @@
 session_start();
 require_once 'config/db.php';
 
-// Тек жүйеге кірген пайдаланушыларға ғана рұқсат беру
 if (!isset($_SESSION['user_id'])) {
     header('Location: auth.php');
     exit;
@@ -19,6 +18,19 @@ $allowedMoods = [
     'Шабытты'  => '✨ Шабытты'
 ];
 
+$allowedFonts = [
+    "'Inter', sans-serif"            => 'Inter (Заманауи)',
+    "'Montserrat', sans-serif"       => 'Montserrat (Геометриялық)',
+    "'Nunito', sans-serif"           => 'Nunito (Жұмсақ)',
+    "'Rubik', sans-serif"            => 'Rubik (Дөңгелек)',
+    "'Comfortaa', cursive"           => 'Comfortaa (Ерекше)',
+    "'Lora', serif"                  => 'Lora (Классикалық)',
+    "'Playfair Display', serif"      => 'Playfair Display (Эстетикалық)',
+    "'Merriweather', serif"          => 'Merriweather (Кітаби)',
+    "'JetBrains Mono', monospace"    => 'JetBrains Mono (Код стилі)',
+    "'Caveat', cursive"              => 'Caveat (Қолжазба)'
+];
+
 $formErrors = [];
 $formSuccess = '';
 
@@ -30,11 +42,13 @@ if (isset($_GET['added'])) {
     $formSuccess = 'Жазба сәтті жойылды.';
 }
 
-// 1. Жаңа жазбаны MySQL-ге қосу (CREATE)
+// 1. Жаңа жазбаны MySQL-ге қосу (CREATE + Сурет + Шрифт)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_entry'])) {
     $title = trim($_POST['title'] ?? '');
     $mood = trim($_POST['mood'] ?? '');
+    $fontFamily = trim($_POST['font_family'] ?? "'Inter', sans-serif");
     $content = trim($_POST['content'] ?? '');
+    $imagePath = null;
 
     if (mb_strlen($title) < 3) {
         $formErrors[] = 'Тақырып кемінде 3 таңбадан тұруы қажет.';
@@ -42,8 +56,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_entry'])) {
     if (!array_key_exists($mood, $allowedMoods)) {
         $formErrors[] = 'Тізімнен дұрыс көңіл-күйді таңдаңыз.';
     }
+    if (!array_key_exists($fontFamily, $allowedFonts)) {
+        $fontFamily = "'Inter', sans-serif";
+    }
     if (mb_strlen($content) < 5) {
         $formErrors[] = 'Жазба мәтіні тым қысқа (кемінде 5 таңба).';
+    }
+
+    // Сурет жүктеу тексерісі
+    if (isset($_FILES['entry_image']) && $_FILES['entry_image']['error'] !== UPLOAD_ERR_NO_FILE) {
+        if ($_FILES['entry_image']['error'] === UPLOAD_ERR_OK) {
+            $fileTmp = $_FILES['entry_image']['tmp_name'];
+            $fileSize = $_FILES['entry_image']['size'];
+            $fileInfo = getimagesize($fileTmp);
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
+            if ($fileInfo === false || !in_array($fileInfo['mime'], $allowedTypes, true)) {
+                $formErrors[] = 'Тек JPG, PNG, WEBP немесе GIF суреттерін жүктеуге болады.';
+            } elseif ($fileSize > 5 * 1024 * 1024) {
+                $formErrors[] = 'Сурет көлемі 5 МБ-тан аспауы керек.';
+            } else {
+                $uploadDir = __DIR__ . '/uploads/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+                $ext = pathinfo($_FILES['entry_image']['name'], PATHINFO_EXTENSION);
+                $newFileName = 'img_' . $userId . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . strtolower($ext);
+                if (move_uploaded_file($fileTmp, $uploadDir . $newFileName)) {
+                    $imagePath = 'uploads/' . $newFileName;
+                } else {
+                    $formErrors[] = 'Суретті серверге сақтау кезінде қате кетті.';
+                }
+            }
+        } else {
+            $formErrors[] = 'Суретті жүктеу сәтсіз аяқталды.';
+        }
     }
 
     if (empty($formErrors)) {
@@ -53,19 +100,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_entry'])) {
         $categoryId = $catRow ? $catRow['id'] : null;
 
         $insertStmt = $pdo->prepare(
-            'INSERT INTO entries (user_id, category_id, mood, title, content) VALUES (?, ?, ?, ?, ?)'
+            'INSERT INTO entries (user_id, category_id, mood, title, content, font_family, image_path) VALUES (?, ?, ?, ?, ?, ?, ?)'
         );
-        $insertStmt->execute([$userId, $categoryId, $mood, $title, $content]);
+        $insertStmt->execute([$userId, $categoryId, $mood, $title, $content, $fontFamily, $imagePath]);
 
         header('Location: diary.php?added=1');
         exit;
     }
 }
 
-// 2. Жазбаны өшіру (DELETE)
+// 2. Жазбаны өшіру (DELETE + суретті файлдан өшіру)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_entry'])) {
     $entryId = (int)($_POST['entry_id'] ?? 0);
     if ($entryId > 0) {
+        $imgStmt = $pdo->prepare('SELECT image_path FROM entries WHERE id = ? AND user_id = ?');
+        $imgStmt->execute([$entryId, $userId]);
+        $row = $imgStmt->fetch();
+
+        if ($row && !empty($row['image_path']) && file_exists(__DIR__ . '/' . $row['image_path'])) {
+            unlink(__DIR__ . '/' . $row['image_path']);
+        }
+
         $delStmt = $pdo->prepare('DELETE FROM entries WHERE id = ? AND user_id = ?');
         $delStmt->execute([$entryId, $userId]);
     }
@@ -85,11 +140,11 @@ $topMoodStmt->execute([$userId]);
 $topMoodRow = $topMoodStmt->fetch();
 $topMoodLabel = $topMoodRow ? ($allowedMoods[$topMoodRow['mood']] ?? $topMoodRow['mood']) : 'Әзірге жоқ';
 
-// 4. Пайдаланушының жазбаларын categories кестесімен біріктіріп оқу (READ + JOIN)
+// 4. Жазбаларды оқу
 $searchQuery = trim($_GET['search'] ?? '');
 $selectedMood = $_GET['mood'] ?? 'all';
 
-$sql = 'SELECT e.id, e.mood, e.title, e.content, e.created_at, c.name AS category_name
+$sql = 'SELECT e.id, e.mood, e.title, e.content, e.font_family, e.image_path, e.created_at, c.name AS category_name
         FROM entries e
         LEFT JOIN categories c ON e.category_id = c.id
         WHERE e.user_id = :user_id';
@@ -121,12 +176,12 @@ include 'includes/header.php';
             <h1>Менің күнделік жазбаларым</h1>
             <p class="subtitle">Сәлем, <?= htmlspecialchars($_SESSION['username'] ?? 'Пайдаланушы') ?>! Бүгін ойыңызда не бар?</p>
         </div>
-       <div class="hero-buttons">
+        <div class="hero-buttons">
             <a href="export.php" class="btn btn-outline">⬇ Экспорт (.txt)</a>
             <button type="button" class="btn btn-primary" id="openModalBtn">+ Жаңа жазба</button>
+        </div>
     </div>
 
-        
     <!-- СТАТИСТИКА БЛОГЫ -->
     <div class="stats-bar">
         <div class="stat-card">
@@ -180,6 +235,7 @@ include 'includes/header.php';
                     $formattedDate = date('d.m.Y H:i', strtotime($item['created_at']));
                     $moodKey = $item['category_name'] ?? $item['mood'];
                     $badgeText = $allowedMoods[$moodKey] ?? htmlspecialchars($moodKey);
+                    $entryFont = $item['font_family'] ?: "'Inter', sans-serif";
                 ?>
                 <article class="entry-card" data-mood="<?= htmlspecialchars($moodKey) ?>">
                     <div>
@@ -187,8 +243,11 @@ include 'includes/header.php';
                             <span class="entry-date"><?= htmlspecialchars($formattedDate) ?></span>
                             <span class="mood-badge"><?= htmlspecialchars($badgeText) ?></span>
                         </div>
-                        <h3><?= htmlspecialchars($item['title']) ?></h3>
-                        <p><?= nl2br(htmlspecialchars($item['content'])) ?></p>
+                        <?php if (!empty($item['image_path'])): ?>
+                            <img src="<?= htmlspecialchars($item['image_path']) ?>" alt="Жазба суреті" class="entry-image">
+                        <?php endif; ?>
+                        <h3 style="font-family: <?= htmlspecialchars($entryFont) ?> !important;"><?= htmlspecialchars($item['title']) ?></h3>
+                        <p style="font-family: <?= htmlspecialchars($entryFont) ?> !important;"><?= nl2br(htmlspecialchars($item['content'])) ?></p>
                     </div>
                     <div class="entry-actions">
                         <a href="edit.php?id=<?= (int)$item['id'] ?>" class="btn-small btn-edit">Өңдеу</a>
@@ -211,7 +270,7 @@ include 'includes/header.php';
             <h2>Жаңа жазба қосу</h2>
             <button type="button" class="close-btn" id="closeModalBtn">&times;</button>
         </div>
-        <form id="newEntryForm" action="diary.php" method="POST">
+        <form id="newEntryForm" action="diary.php" method="POST" enctype="multipart/form-data">
             <input type="hidden" name="add_entry" value="1">
             <div class="form-group">
                 <label for="entryTitle">Тақырыбы</label>
@@ -226,6 +285,18 @@ include 'includes/header.php';
                 </select>
             </div>
             <div class="form-group">
+                <label for="entryFontSelect">Жазба шрифті (Әріп стилі)</label>
+                <select id="entryFontSelect" name="font_family">
+                    <?php foreach ($allowedFonts as $fontCss => $fontLabel): ?>
+                        <option value="<?= htmlspecialchars($fontCss) ?>"><?= htmlspecialchars($fontLabel) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="entryImage">Сурет қосу (міндетті емес, max 5 МБ)</label>
+                <input type="file" id="entryImage" name="entry_image" accept="image/jpeg,image/png,image/webp,image/gif">
+            </div>
+            <div class="form-group">
                 <label for="entryContent">Жазба мәтіні</label>
                 <textarea id="entryContent" name="content" rows="5" placeholder="Ойларыңызды осында жазыңыз..." required><?= !empty($formErrors) ? htmlspecialchars($_POST['content'] ?? '') : '' ?></textarea>
             </div>
@@ -233,5 +304,21 @@ include 'includes/header.php';
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const fontSelect = document.getElementById('entryFontSelect');
+    const titleInput = document.getElementById('entryTitle');
+    const contentArea = document.getElementById('entryContent');
+
+    if (fontSelect && titleInput && contentArea) {
+        fontSelect.addEventListener('change', (e) => {
+            const chosenFont = e.target.value;
+            titleInput.style.setProperty('font-family', chosenFont, 'important');
+            contentArea.style.setProperty('font-family', chosenFont, 'important');
+        });
+    }
+});
+</script>
 
 <?php include 'includes/footer.php'; ?>
