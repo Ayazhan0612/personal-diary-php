@@ -38,5 +38,19 @@ $isLoggedIn = isset($_SESSION['user_id']);
                     <a href="auth.php" class="btn-nav <?= $activePage === 'auth' ? 'active' : '' ?>">Кіру / Тіркелу</a>
                 <?php endif; ?>
             </nav>
-        </div>
+          </nav>
+            <div class="font-switcher">
+    <select id="fontSelector" aria-label="Шрифт таңдау" title="Шрифтті өзгерту">
+        <option value="'Inter', sans-serif">Inter (Заманауи)</option>
+        <option value="'Montserrat', sans-serif">Montserrat (Геометриялық)</option>
+        <option value="'Nunito', sans-serif">Nunito (Жұмсақ)</option>
+        <option value="'Rubik', sans-serif">Rubik (Дөңгелек)</option>
+        <option value="'Comfortaa', cursive">Comfortaa (Ерекше)</option>
+        <option value="'Lora', serif">Lora (Классикалық)</option>
+        <option value="'Playfair Display', serif">Playfair Display (Эстетикалық)</option>
+        <option value="'Merriweather', serif">Merriweather (Кітаби)</option>
+        <option value="'JetBrains Mono', monospace">JetBrains Mono (Код стилі)</option>
+        <option value="'Caveat', cursive">Caveat (Қолжазба)</option>
+    </select>
+</div>     
     </header>
