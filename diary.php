@@ -305,8 +305,15 @@ include 'includes/header.php';
     </div>
 </div>
 
+<!-- СУРЕТТІ ТОЛЫҚ КӨЛЕМДЕ КӨРУ МОДАЛЬДЫ ТЕРЕЗЕСІ (LIGHTBOX) -->
+<div class="lightbox-modal hidden" id="imageLightbox">
+    <button type="button" class="lightbox-close" id="closeLightboxBtn">&times;</button>
+    <img src="" alt="Үлкейтілген сурет" id="lightboxImg">
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Жазба шрифтін тікелей өзгертіп көру
     const fontSelect = document.getElementById('entryFontSelect');
     const titleInput = document.getElementById('entryTitle');
     const contentArea = document.getElementById('entryContent');
@@ -316,6 +323,32 @@ document.addEventListener('DOMContentLoaded', () => {
             const chosenFont = e.target.value;
             titleInput.style.setProperty('font-family', chosenFont, 'important');
             contentArea.style.setProperty('font-family', chosenFont, 'important');
+        });
+    }
+
+    // 2. Суретті басқанда толық экранға үлкейтіп ашу (Lightbox)
+    const lightbox = document.getElementById('imageLightbox');
+    const lightboxImg = document.getElementById('lightboxImg');
+    const closeLightboxBtn = document.getElementById('closeLightboxBtn');
+
+    document.querySelectorAll('.entry-image').forEach(img => {
+        img.addEventListener('click', () => {
+            lightboxImg.src = img.src;
+            lightbox.classList.remove('hidden');
+        });
+    });
+
+    if (closeLightboxBtn && lightbox) {
+        closeLightboxBtn.addEventListener('click', () => lightbox.classList.add('hidden'));
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) {
+                lightbox.classList.add('hidden');
+            }
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !lightbox.classList.contains('hidden')) {
+                lightbox.classList.add('hidden');
+            }
         });
     }
 });
