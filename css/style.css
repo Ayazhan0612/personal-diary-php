@@ -1,13 +1,15 @@
 :root {
-    --bg-color: #f8f7f4;
-    --card-bg: #ffffff;
-    --primary: #4f46e5;
-    --primary-hover: #4338ca;
-    --text-main: #1f2937;
-    --text-muted: #6b7280;
-    --border-color: #e5e7eb;
+    --app-font: 'Inter', sans-serif;
+    --primary: #6366f1;
+    --primary-hover: #4f46e5;
+    --accent: #ec4899;
+    --text-main: #0f172a;
+    --text-muted: #475569;
+    --glass-bg: rgba(255, 255, 255, 0.72);
+    --glass-border: rgba(255, 255, 255, 0.65);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
     --danger: #ef4444;
-    --radius: 10px;
+    --radius: 16px;
 }
 
 * {
@@ -16,9 +18,13 @@
     padding: 0;
 }
 
+body, input, textarea, select, button {
+    font-family: var(--app-font) !important;
+}
+
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--bg-color);
+    background: linear-gradient(135deg, #e0e7ff 0%, #fce7f3 50%, #e0f2fe 100%);
+    background-attachment: fixed;
     color: var(--text-main);
     line-height: 1.6;
     display: flex;
@@ -31,37 +37,44 @@ main {
 }
 
 .container {
-    width: 90%;
-    max-width: 1100px;
+    width: 92%;
+    max-width: 1140px;
     margin: 0 auto;
 }
 
-/* Навигация */
+/* Навигация (Glassmorphism) */
 .navbar {
-    background-color: var(--card-bg);
-    border-bottom: 1px solid var(--border-color);
-    padding: 1rem 0;
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--glass-border);
+    padding: 0.9rem 0;
     position: sticky;
     top: 0;
     z-index: 100;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
 }
 
 .nav-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1rem;
 }
 
 .logo {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: var(--primary);
+    font-size: 1.35rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
     text-decoration: none;
+    letter-spacing: -0.5px;
 }
 
 .nav-links {
     display: flex;
-    gap: 1.5rem;
+    gap: 1.4rem;
     align-items: center;
 }
 
@@ -69,27 +82,54 @@ main {
     text-decoration: none;
     color: var(--text-main);
     font-weight: 500;
+    font-size: 0.95rem;
+    transition: color 0.2s;
 }
 
+.nav-links a:hover,
 .nav-links a.active {
     color: var(--primary);
 }
 
 .user-greeting {
-    font-size: 0.92rem;
+    font-size: 0.9rem;
     font-weight: 600;
     color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.6);
+    padding: 0.35rem 0.8rem;
+    border-radius: 20px;
 }
 
 .btn-nav {
-    background-color: var(--primary);
+    background: linear-gradient(135deg, var(--primary), #818cf8);
     color: #fff !important;
-    padding: 0.45rem 1rem;
-    border-radius: var(--radius);
+    padding: 0.45rem 1.1rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
 }
 
 .btn-logout {
-    background-color: var(--danger);
+    background: linear-gradient(135deg, #ef4444, #f87171);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+/* Шрифт таңдағыш */
+.font-switcher select {
+    padding: 7px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    background: rgba(255, 255, 255, 0.85);
+    color: var(--text-main);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.font-switcher select:hover {
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
 }
 
 .menu-toggle {
@@ -100,31 +140,43 @@ main {
     cursor: pointer;
 }
 
-/* Батырмалар */
+/* Заманауи батырмалар */
 .btn {
-    display: inline-block;
-    padding: 0.7rem 1.4rem;
-    border-radius: var(--radius);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
     text-decoration: none;
     font-weight: 600;
+    font-size: 0.95rem;
     cursor: pointer;
     border: none;
-    transition: 0.2s;
+    transition: all 0.25s ease;
 }
 
 .btn-primary {
-    background-color: var(--primary);
+    background: linear-gradient(135deg, var(--primary), #8b5cf6);
     color: #fff;
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
 }
 
 .btn-primary:hover {
-    background-color: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
 }
 
 .btn-outline {
-    border: 2px solid var(--primary);
+    border: 1.5px solid rgba(99, 102, 241, 0.4);
     color: var(--primary);
-    background: transparent;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(8px);
+}
+
+.btn-outline:hover {
+    background: #fff;
+    transform: translateY(-2px);
 }
 
 .btn-full {
@@ -134,19 +186,23 @@ main {
 /* Басты бет */
 .hero {
     text-align: center;
-    padding: 4.5rem 0 3rem;
+    padding: 5rem 0 3rem;
 }
 
 .hero h1 {
-    font-size: 2.3rem;
-    max-width: 700px;
-    margin: 0 auto 1rem;
+    font-size: 2.7rem;
+    font-weight: 800;
+    max-width: 750px;
+    margin: 0 auto 1.2rem;
+    line-height: 1.2;
+    letter-spacing: -0.8px;
 }
 
 .hero p {
     color: var(--text-muted);
-    max-width: 580px;
-    margin: 0 auto 2rem;
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto 2.2rem;
 }
 
 .hero-buttons {
@@ -158,23 +214,34 @@ main {
 
 .features {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    gap: 1.6rem;
     margin: 2rem auto 4rem;
 }
 
-.feature-card {
-    background: var(--card-bg);
-    padding: 1.8rem;
+.feature-card, .auth-card, .stat-card, .edit-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius);
-    border: 1px solid var(--border-color);
+    box-shadow: var(--glass-shadow);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.feature-card {
+    padding: 2rem;
     text-align: center;
 }
 
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
 .feature-icon {
-    font-size: 2.2rem;
+    font-size: 2.4rem;
     display: block;
-    margin-bottom: 0.8rem;
+    margin-bottom: 0.9rem;
 }
 
 /* Аутентификация беті */
@@ -182,27 +249,24 @@ main {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 3rem 1rem;
+    padding: 3.5rem 1rem;
 }
 
 .auth-card {
-    background: var(--card-bg);
     width: 100%;
-    max-width: 420px;
-    padding: 2rem;
-    border-radius: var(--radius);
-    border: 1px solid var(--border-color);
+    max-width: 440px;
+    padding: 2.2rem;
 }
 
 .auth-tabs {
     display: flex;
     margin-bottom: 1.5rem;
-    border-bottom: 2px solid var(--border-color);
+    border-bottom: 2px solid rgba(99, 102, 241, 0.15);
 }
 
 .tab-btn {
     flex: 1;
-    padding: 0.7rem;
+    padding: 0.75rem;
     background: none;
     border: none;
     font-weight: 600;
@@ -217,24 +281,33 @@ main {
 }
 
 .form-group {
-    margin-bottom: 1rem;
+    margin-bottom: 1.1rem;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.4rem;
     font-size: 0.9rem;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
     width: 100%;
-    padding: 0.65rem;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-family: inherit;
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.85);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
 .error-msg {
@@ -245,7 +318,7 @@ main {
 
 /* Күнделік беті */
 .diary-container {
-    padding: 2.5rem 0;
+    padding: 2.8rem 0;
 }
 
 .diary-header {
@@ -254,75 +327,127 @@ main {
     align-items: center;
     flex-wrap: wrap;
     gap: 1rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.8rem;
+}
+
+.diary-header h1 {
+    font-size: 2rem;
+    font-weight: 800;
 }
 
 .subtitle {
     color: var(--text-muted);
 }
 
+.stats-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.2rem;
+    margin-bottom: 1.8rem;
+}
+
+.stat-card {
+    padding: 1.2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--primary);
+}
+
 .filter-bar {
     display: flex;
     gap: 1rem;
-    margin-bottom: 2rem;
+    margin-bottom: 2.2rem;
     flex-wrap: wrap;
+}
+
+.filter-bar input,
+.filter-bar select {
+    padding: 0.75rem 1.1rem;
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    outline: none;
 }
 
 .filter-bar input {
     flex: 1;
-    min-width: 220px;
-    padding: 0.65rem 1rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius);
+    min-width: 240px;
 }
 
-.filter-bar select {
-    padding: 0.65rem 1rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius);
-    background: var(--card-bg);
-}
-
+/* Жазба карточкалары */
 .entries-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.6rem;
 }
 
 .entry-card {
-    background: var(--card-bg);
-    padding: 1.5rem;
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding: 1.6rem;
     border-radius: var(--radius);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.entry-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 36px rgba(31, 38, 135, 0.12);
+}
+
+.entry-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
 .entry-meta {
     display: flex;
     justify-content: space-between;
-    font-size: 0.85rem;
+    align-items: center;
+    font-size: 0.83rem;
     color: var(--text-muted);
-    margin-bottom: 0.7rem;
+    margin-bottom: 0.8rem;
 }
 
 .mood-badge {
-    background: #eef2ff;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(236, 72, 153, 0.15));
     color: var(--primary);
-    padding: 0.15rem 0.6rem;
+    padding: 0.25rem 0.75rem;
     border-radius: 20px;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .entry-card h3 {
+    font-size: 1.2rem;
     margin-bottom: 0.5rem;
 }
 
 .entry-card p {
     color: var(--text-muted);
     font-size: 0.95rem;
-    margin-bottom: 1.2rem;
+    margin-bottom: 1.3rem;
 }
 
 .entry-actions {
@@ -331,24 +456,41 @@ main {
 }
 
 .btn-small {
-    padding: 0.35rem 0.8rem;
-    border-radius: 6px;
-    border: 1px solid var(--border-color);
-    background: #fff;
+    padding: 0.4rem 0.9rem;
+    border-radius: 10px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    background: rgba(255, 255, 255, 0.85);
     cursor: pointer;
     font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-edit {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.btn-edit:hover {
+    background: var(--primary);
+    color: #fff;
 }
 
 .btn-delete {
     color: var(--danger);
-    border-color: #fecaca;
+}
+
+.btn-delete:hover {
+    background: var(--danger);
+    color: #fff;
 }
 
 /* Модальды терезе */
 .modal {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(6px);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -357,18 +499,22 @@ main {
 }
 
 .modal-content {
-    background: var(--card-bg);
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(20px);
     width: 100%;
-    max-width: 500px;
-    padding: 1.8rem;
-    border-radius: var(--radius);
+    max-width: 520px;
+    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: 1.2rem;
 }
 
 .close-btn {
@@ -376,21 +522,47 @@ main {
     border: none;
     font-size: 1.6rem;
     cursor: pointer;
+    color: var(--text-muted);
 }
 
 .hidden {
     display: none !important;
 }
 
+.edit-card {
+    padding: 2.2rem;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
 .footer {
     text-align: center;
-    padding: 1.5rem 0;
-    border-top: 1px solid var(--border-color);
+    padding: 1.6rem 0;
+    border-top: 1px solid var(--glass-border);
+    background: rgba(255, 255, 255, 0.5);
     color: var(--text-muted);
     font-size: 0.9rem;
 }
 
-/* Адаптивтілік */
+.alert {
+    padding: 1rem 1.2rem;
+    border-radius: 12px;
+    margin-bottom: 1.2rem;
+    font-size: 0.92rem;
+}
+
+.alert-error {
+    background: rgba(254, 242, 242, 0.9);
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+}
+
+.alert-success {
+    background: rgba(236, 253, 245, 0.9);
+    border: 1px solid #a7f3d0;
+    color: #047857;
+}
+
 @media (max-width: 768px) {
     .menu-toggle {
         display: block;
@@ -403,9 +575,9 @@ main {
         top: 100%;
         left: 0;
         right: 0;
-        background: var(--card-bg);
-        padding: 1rem;
-        border-bottom: 1px solid var(--border-color);
+        background: rgba(255, 255, 255, 0.95);
+        padding: 1.2rem;
+        border-bottom: 1px solid var(--glass-border);
     }
 
     .nav-links.open {
@@ -413,73 +585,6 @@ main {
     }
 
     .hero h1 {
-        font-size: 1.7rem;
+        font-size: 1.9rem;
     }
-}
-
-/* PHP хабарлама блоктары */
-.alert {
-    padding: 0.9rem 1.1rem;
-    border-radius: 8px;
-    margin-bottom: 1.2rem;
-    font-size: 0.9rem;
-}
-
-.alert-error {
-    background-color: #fef2f2;
-    border: 1px solid #fecaca;
-    color: #b91c1c;
-}
-
-.alert-success {
-    background-color: #ecfdf5;
-    border: 1px solid #a7f3d0;
-    color: #047857;
-}
-
-
-
-
-/* 12-апта: Статистика және Өңдеу беті */
-.stats-bar {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-.stat-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius);
-    padding: 1rem 1.3rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-}
-
-.stat-label {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-}
-
-.stat-value {
-    font-size: 1.35rem;
-    color: var(--primary);
-}
-
-.btn-edit {
-    color: var(--primary);
-    border-color: #c7d2fe;
-    text-decoration: none;
-    display: inline-block;
-}
-
-.edit-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius);
-    padding: 2rem;
-    max-width: 700px;
-    margin: 0 auto;
 }
