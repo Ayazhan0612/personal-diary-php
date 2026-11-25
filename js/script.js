@@ -50,3 +50,22 @@ document.addEventListener('DOMContentLoaded', () => {
         closeModalBtn.addEventListener('click', () => entryModal.classList.add('hidden'));
     }
 });
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    const fontSelector = document.getElementById('fontSelector');
+    const savedFont = localStorage.getItem('diary_font');
+
+    if (savedFont) {
+        document.documentElement.style.setProperty('--app-font', savedFont);
+        if (fontSelector) fontSelector.value = savedFont;
+    }
+
+    if (fontSelector) {
+        fontSelector.addEventListener('change', (e) => {
+            const selectedFont = e.target.value;
+            document.documentElement.style.setProperty('--app-font', selectedFont);
+            localStorage.setItem('diary_font', selectedFont);
+        });
+    }
+});
